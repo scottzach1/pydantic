@@ -988,7 +988,7 @@ def validate_model(  # noqa: C901 (ignore complexity)
     # field names, never aliases
     fields_set = set()
     config = model.__config__
-    check_extra = config.extra is not Extra.ignore
+    check_extra = config.extra is not Extra.ignore or config.extra_warn
     cls_ = cls or model
 
     for validator in model.__pre_root_validators__:
@@ -1034,9 +1034,13 @@ def validate_model(  # noqa: C901 (ignore complexity)
             extra = input_data.keys() - names_used
         if extra:
             fields_set |= extra
-            if config.extra is Extra.allow:
+            if (config.extra is Extra.allow) or (config.extra is Extra.ignore and config.extra_warn):
                 for f in extra:
-                    values[f] = input_data[f]
+                    if config.extra_warn:
+                        key_val = {f: input_data[f]}
+                        warnings.warn(RuntimeWarning(f'"{model.__name__}" model did not expect {key_val}'))
+                    if config.extra is Extra.allow:
+                        values[f] = input_data[f]
             else:
                 for f in sorted(extra):
                     errors.append(ErrorWrapper(ExtraError(), loc=f))
