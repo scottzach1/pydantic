@@ -44,6 +44,7 @@ class BaseConfig:
     max_anystr_length: Optional[int] = None
     validate_all: bool = False
     extra: Extra = Extra.ignore
+    extra_warn: bool = False
     allow_mutation: bool = True
     frozen: bool = False
     allow_population_by_field_name: bool = False

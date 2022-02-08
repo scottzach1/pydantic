@@ -639,3 +639,11 @@ In addition, the `**data` argument will always be present in the signature if `C
     Types in the model signature are the same as declared in model annotations, 
     not necessarily all the types that can actually be provided to that field.
     This may be fixed one day once [#1055](https://github.com/samuelcolvin/pydantic/issues/1055) is solved.
+
+If you use `Extra.allow` or `Extra.ignore` you may optionally toggle `extra_warn=True` (default=`False`) to trigger a 
+[RuntimeWarning](https://docs.python.org/3/library/exceptions.html#RuntimeWarning) if any unexpected arguments were 
+provided to the model. This can be useful in identifying other fields to strongly type.
+
+```py
+{!.tmp_examples/models_extra_warn.py!}
+```

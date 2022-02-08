@@ -247,6 +247,22 @@ def test_forbidden_extra_fails():
     ]
 
 
+def test_forbidden_extra_fails_warn():
+    class ForbiddenExtra(BaseModel):
+        foo = 'whatever'
+
+        class Config:
+            extra = Extra.forbid
+            extra_warn = True
+
+    with pytest.raises(ValidationError) as exc_info:
+        ForbiddenExtra(foo='ok', bar='wrong', spam='xx')
+    assert exc_info.value.errors() == [
+        {'loc': ('bar',), 'msg': 'extra fields not permitted', 'type': 'value_error.extra'},
+        {'loc': ('spam',), 'msg': 'extra fields not permitted', 'type': 'value_error.extra'},
+    ]
+
+
 def test_disallow_mutation():
     class Model(BaseModel):
         a: float
@@ -280,6 +296,42 @@ def test_extra_ignored():
             extra = Extra.ignore
 
     model = Model(a=0.2, b=0.1)
+    assert not hasattr(model, 'b')
+
+    with pytest.raises(ValueError, match='"Model" object has no field "c"'):
+        model.c = 1
+
+
+def test_extra_allowed_warn():
+    class Model(BaseModel):
+        a: float
+
+        class Config:
+            extra = Extra.allow
+            extra_warn = True
+
+    with pytest.warns(RuntimeWarning, match="\"Model\" model did not expect {'b': 0.1}"):
+        model = Model(a=0.2, b=0.1)
+
+    assert model.b == 0.1
+
+    assert not hasattr(model, 'c')
+    model.c = 1
+    assert hasattr(model, 'c')
+    assert model.c == 1
+
+
+def test_extra_ignored_warn():
+    class Model(BaseModel):
+        a: float
+
+        class Config:
+            extra = Extra.ignore
+            extra_warn = True
+
+    with pytest.warns(RuntimeWarning, match="\"Model\" model did not expect {'b': 0.1}"):
+        model = Model(a=0.2, b=0.1)
+
     assert not hasattr(model, 'b')
 
     with pytest.raises(ValueError, match='"Model" object has no field "c"'):
